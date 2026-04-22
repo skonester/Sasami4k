@@ -1,4 +1,4 @@
-﻿using Microsoft.Web.WebView2.Core;
+using Microsoft.Web.WebView2.Core;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -16,17 +16,14 @@ namespace WinView2
 
         private async void MainWindow_Shown(object sender, EventArgs e)
         {
-            if (MicaHelper.IsWindows11)
-            {
-                MicaHelper.ApplyBackdrop(this, "mica");
-                Background = null;
-            }
+            // Removed Mica backdrop to prevent transparency/interaction conflicts with WebView2
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             await webView.EnsureCoreWebView2Async();
-
+            
+            // Enable host objects with synchronous access
             webView.CoreWebView2.AddHostObjectToScript("windowApi", new WindowApi(this));
 
             webView.CoreWebView2.DocumentTitleChanged += (s, _) =>
@@ -44,7 +41,7 @@ namespace WinView2
                 }
                 else
                 {
-                    this.WindowStyle = WindowStyle.SingleBorderWindow; // Restore window chrome
+                    this.WindowStyle = WindowStyle.None;               // Keep it frameless
                     this.WindowState = WindowState.Normal;             // Restore size
                     this.Topmost = false;                              // Un-cover taskbar
                 }
@@ -54,10 +51,30 @@ namespace WinView2
             webView.CoreWebView2.NavigationCompleted += OnNavigationCompleted;
 
             StateChanged += async (s, _) =>
+            {
+                if (WindowState == WindowState.Maximized)
+                {
+                    var area = SystemParameters.WorkArea;
+                    MaxHeight = area.Height + 8; // Slight offset for WPF quirk
+                    MaxWidth = area.Width + 8;
+                }
                 await DispatchWindowEventAsync("windowStateChanged");
+            };
 
             LocationChanged += async (s, _) =>
                 await DispatchWindowEventAsync("windowMoved");
+
+            webView.CoreWebView2.WebMessageReceived += (s, args) =>
+            {
+                var msg = args.TryGetWebMessageAsString();
+                if (msg == "dragMove") this.Dispatcher.Invoke(() => { if (this.WindowState == WindowState.Normal) this.DragMove(); });
+                if (msg == "minimize") this.Dispatcher.Invoke(() => this.WindowState = WindowState.Minimized);
+                if (msg == "maximize") this.Dispatcher.Invoke(() => {
+                    if (this.WindowState == WindowState.Maximized) this.WindowState = WindowState.Normal;
+                    else this.WindowState = WindowState.Maximized;
+                });
+                if (msg == "close") this.Dispatcher.Invoke(() => this.Close());
+            };
 
             string sourcePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "source", "index.html");
             webView.Source = new Uri(sourcePath);

@@ -64,7 +64,10 @@
         /* Stylish Drag and Drop Overlay */
         #drop-overlay {
             position: absolute;
-            inset: 30px;
+            top: 60px;
+            left: 30px;
+            right: 30px;
+            bottom: 20px;
             border: 2px dashed rgba(255, 255, 255, 0.15);
             border-radius: 32px;
             display: flex;
@@ -113,6 +116,69 @@
             transform: translate(-50%, 120px) scale(0.95);
             opacity: 0;
             pointer-events: none;
+        }
+
+        /* Premium Dark Titlebar */
+        #titlebar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 2000;
+            transition: opacity 0.3s;
+            background: rgba(0, 0, 0, 0.85);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: default;
+        }
+
+        .title-info {
+            font-size: 10px;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        body.idle #titlebar {
+            opacity: 0;
+        }
+
+        .title-btn-group {
+            display: flex;
+            gap: 2px;
+        }
+
+        .title-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s, background 0.2s;
+        }
+
+        .title-btn:hover {
+            opacity: 1;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .title-btn.close:hover {
+            background: #e81123;
+        }
+
+        .title-btn svg {
+            width: 12px;
+            height: 12px;
+            fill: currentColor;
         }
 
         .glass-panel {
@@ -306,6 +372,10 @@
         .menu-item {
             padding: 4px 20px;
             cursor: pointer;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             font-family: 'Tahoma', sans-serif;
             font-size: 11px;
             color: #000;
@@ -320,25 +390,112 @@
             color: #fff;
         }
 
+        .menu-item.has-submenu::after {
+            content: '▶';
+            font-size: 8px;
+            margin-left: 10px;
+        }
+
+        .submenu {
+            position: absolute;
+            top: -2px;
+            left: 100%;
+            background: #d4d0c8;
+            border-top: 2px solid #fff;
+            border-left: 2px solid #fff;
+            border-right: 2px solid #404040;
+            border-bottom: 2px solid #404040;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            padding: 2px;
+            display: none;
+            min-width: 180px;
+        }
+
+        .menu-item:hover > .submenu {
+            display: block;
+        }
+
         .menu-separator {
             height: 0;
             border-top: 1px solid #808080;
             border-bottom: 1px solid #fff;
             margin: 3px 2px;
-            padding: 0;
+        }
+
+        /* Idle Logo Layer */
+        #logo-layer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+            transition: opacity 0.5s;
+        }
+
+        #logo-image {
+            width: 128px;
+            height: 128px;
+            filter: drop-shadow(0 0 30px rgba(255, 136, 187, 0.3));
+        }
+
+        .logo-bounce {
+            animation: bounce 2s infinite ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Scanlines Overlay */
+        #scanlines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            z-index: 10;
+            display: none;
         }
     </style>
 </head>
 <body>
 
+<!-- Custom Titlebar -->
+<div id="titlebar" onmousedown="handleWindowDrag(event)">
+    <div class="title-info" id="title-info">Sasami4K</div>
+    <div class="title-btn-group" onmousedown="event.stopPropagation()">
+        <button class="title-btn" onclick="window.chrome.webview.postMessage('minimize')" title="Minimize">
+            <svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>
+        </button>
+        <button class="title-btn" onclick="window.chrome.webview.postMessage('maximize')" title="Maximize">
+            <svg viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/></svg>
+        </button>
+        <button class="title-btn close" onclick="window.chrome.webview.postMessage('close')" title="Close">
+            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+    </div>
+</div>
+
 <!-- Main Video Layer -->
-<div id="video-container">
+<div id="video-container" onmousedown="handleWindowDrag(event)">
     <div id="drop-overlay">
         <svg class="drop-icon" viewBox="0 0 24 24" fill="currentColor">
             <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.36 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
         </svg>
         <div class="drop-text">DROP MEDIA HERE</div>
     </div>
+    <div id="logo-layer">
+        <img src="icon.png" id="logo-image" class="logo-bounce" draggable="false">
+    </div>
+    <div id="scanlines"></div>
     <video id="video-layer"></video>
 </div>
 
@@ -393,45 +550,63 @@
 
 <!-- Classic Windows 2000 Right Click Menu -->
 <div id="context-menu">
-    <div class="menu-item" onclick="document.getElementById('file-input').click()">Open File...</div>
-    <div class="menu-item" onclick="document.getElementById('sub-input').click()">Load Subtitles...</div>
-    <div class="menu-item" onclick="openUrlPrompt()">Open URL...</div>
-    <div class="menu-item" onclick="closeMedia()">Close Media</div>
+    <div class="menu-item has-submenu">File
+        <div class="submenu">
+            <div class="menu-item" onclick="document.getElementById('file-input').click()">Open File...</div>
+            <div class="menu-item" onclick="openUrlPrompt()">Open URL...</div>
+            <div class="menu-item" onclick="closeMedia()">Close Media</div>
+            <div class="menu-separator"></div>
+            <div class="menu-item" onclick="window.chrome.webview.postMessage('close')">Exit</div>
+        </div>
+    </div>
+    <div class="menu-item has-submenu">Playback
+        <div class="submenu">
+            <div class="menu-item" onclick="togglePlay()">Play/Pause</div>
+            <div class="menu-item" onclick="ctrlStop()">Stop</div>
+            <div class="menu-separator"></div>
+            <div class="menu-item" onclick="video.currentTime += 30">Seek Forward 30s</div>
+            <div class="menu-item" onclick="video.currentTime -= 30">Seek Backward 30s</div>
+            <div class="menu-separator"></div>
+            <div class="menu-item" onclick="toggleLoop()">Repeat Mode</div>
+            <div class="menu-item" onclick="toggleMute()">Mute</div>
+        </div>
+    </div>
+    <div class="menu-item has-submenu">Video Filters
+        <div class="submenu">
+            <div class="menu-item" onclick="adjustFilter('brightness', 0.1)">Brightness Up</div>
+            <div class="menu-item" onclick="adjustFilter('brightness', -0.1)">Brightness Down</div>
+            <div class="menu-separator"></div>
+            <div class="menu-item" onclick="toggleFilter('invert')">Negative (Invert)</div>
+            <div class="menu-item" onclick="toggleFilter('blur')">Soften (Blur)</div>
+            <div class="menu-item" onclick="toggleFilter('contrast')">Sharpen (Contrast)</div>
+            <div class="menu-item" onclick="toggleFilter('flip')">Flip Horizontal</div>
+            <div class="menu-item" onclick="toggleScanlines()">Scanlines</div>
+            <div class="menu-separator"></div>
+            <div class="menu-item" onclick="resetFilters()">Reset Filters</div>
+        </div>
+    </div>
+    <div class="menu-item has-submenu">Controls
+        <div class="submenu">
+            <div class="menu-item has-submenu">Aspect Ratio
+                <div class="submenu">
+                    <div class="menu-item" onclick="setAspect('contain')">Original</div>
+                    <div class="menu-item" onclick="setAspect('4/3')">TV 4:3</div>
+                    <div class="menu-item" onclick="setAspect('16/9')">Wide 16:9</div>
+                    <div class="menu-item" onclick="setAspect('cover')">Fill Screen</div>
+                </div>
+            </div>
+            <div class="menu-separator"></div>
+            <div id="mi-logo-bounce" class="menu-item" onclick="toggleLogoBounce()">Logo Bounce (Audio)</div>
+        </div>
+    </div>
     <div class="menu-separator"></div>
-    <div class="menu-item" onclick="ctrlPlay()">Play</div>
-    <div class="menu-item" onclick="ctrlPause()">Pause</div>
-    <div class="menu-item" onclick="ctrlStop()">Stop</div>
-    <div class="menu-separator"></div>
-    <div class="menu-item" onclick="toggleMute()">Mute / Unmute</div>
-    <div class="menu-item" onclick="volChange(0.1)">Volume Up</div>
-    <div class="menu-item" onclick="volChange(-0.1)">Volume Down</div>
-    <div class="menu-separator"></div>
-    <div class="menu-item" onclick="setSpeed(0.5)">Speed: Half (0.5x)</div>
-    <div class="menu-item" onclick="setSpeed(1.0)">Speed: Normal (1x)</div>
-    <div class="menu-item" onclick="setSpeed(1.5)">Speed: Fast (1.5x)</div>
-    <div class="menu-item" onclick="setSpeed(2.0)">Speed: Double (2x)</div>
-    <div class="menu-separator"></div>
-    <div class="menu-item" onclick="toggleLoop()">Toggle Repeat (Loop)</div>
     <div class="menu-item" onclick="toggleFullscreen()">Toggle Fullscreen</div>
     <div class="menu-item" onclick="togglePiP()">Picture-in-Picture</div>
     <div class="menu-separator"></div>
-    <div class="menu-item" onclick="copyTime()">Copy Media Time</div>
-    <div class="menu-item" onclick="alert('Sasami4K\nCreated with Y2K Love.')">About Sasami4K...</div>
-    <div class="menu-separator"></div>
-    <div class="menu-item" onclick="winApi('close')">Exit Window</div>
+    <div class="menu-item" onclick="alert('Sasami4K\nMade with Y2K Love!')">About Sasami4K...</div>
 </div>
 
 <script>
-    // System Window Interop 
-    function winApi(action) {
-        const api = window.chrome?.webview?.hostObjects?.windowApi;
-        if (api && typeof api[action] === 'function') {
-            api[action]();
-        } else if (action === 'close') {
-            window.close();
-        }
-    }
-
     // Elements
     const video = document.getElementById('video-layer');
     const playIcon = document.getElementById('play-icon');
@@ -442,8 +617,22 @@
     const seekBar = document.getElementById('seek-bar');
     const volBar = document.getElementById('vol-bar');
     const dropOverlay = document.getElementById('drop-overlay');
+    const logoLayer = document.getElementById('logo-layer');
+    const logoImage = document.getElementById('logo-image');
+    const scanlines = document.getElementById('scanlines');
     const contextMenu = document.getElementById('context-menu');
     const fileInput = document.getElementById('file-input');
+
+    // State
+    let filters = {
+        brightness: 1,
+        invert: 0,
+        blur: 0,
+        contrast: 1,
+        flip: 1
+    };
+    let isLogoBounceAudio = false;
+    let audioCtx, analyser, dataArray;
 
     // Auto-Hide Controls & Titlebar Idle Logic
     let idleTimeout;
@@ -451,13 +640,11 @@
         document.body.classList.remove('idle');
         clearTimeout(idleTimeout);
         idleTimeout = setTimeout(() => {
-            // Hide only if media is actually playing
             if (!video.paused && video.src) {
                 document.body.classList.add('idle');
-                // hide cursor for immersion
                 document.body.style.cursor = 'none';
             }
-        }, 5000); // 5 seconds
+        }, 5000); 
     }
 
     function awakenCore() {
@@ -474,7 +661,6 @@
         document.body.style.cursor = 'default';
     });
 
-    // Icons
     const SVG_PLAY = '<path d="M8 5v14l11-7z"/>';
     const SVG_PAUSE = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
 
@@ -484,13 +670,37 @@
 
     function loadMedia(file) {
         if (!file) return;
+        const isAudio = file.type.startsWith('audio');
         video.src = URL.createObjectURL(file);
         npTitle.innerText = file.name;
         dropOverlay.style.display = 'none';
+        
+        if (isAudio) {
+            logoLayer.style.display = 'flex';
+            logoLayer.style.opacity = '1';
+            isLogoBounceAudio = true;
+        } else {
+            logoLayer.style.opacity = '0';
+            setTimeout(() => logoLayer.style.display = 'none', 500);
+            isLogoBounceAudio = false;
+        }
+
         ctrlPlay();
+        initAudio();
     }
 
-    // Playback Engine
+    function handleWindowDrag(e) {
+        if (e.button === 0) {
+            // Check if we are clicking on or inside an interactive element
+            const interactive = e.target.closest('button, input, a, .glass-panel, #context-menu, #controls-wrapper');
+            if (interactive) return;
+
+            try {
+                window.chrome.webview.hostObjects.windowApi.DragMove();
+            } catch(err) { console.error("Drag failed", err); }
+        }
+    }
+
     function togglePlay() {
         if(video.src) {
             if(video.paused) ctrlPlay();
@@ -524,38 +734,24 @@
     }
 
     function toggleFullscreen() {
-        // Broadcast to native wrappers (Electron IPC or C# windowApi)
-        if (typeof window.require === 'function') {
-            try { window.require('electron').ipcRenderer.send('toggle-fullscreen'); } catch(e) {}
-        }
-        try { winApi('fullscreen'); } catch(e) {}
-
-        // Fallback: Use standard HTML5 API
         let target = document.documentElement;
         if (!document.fullscreenElement && !document.webkitFullscreenElement) {
             if (target.requestFullscreen) {
                 target.requestFullscreen().catch(e => {
-                    // If root fullscreen is explicitly blocked, try forcing just the video canvas
                     let videoElement = document.getElementById('video-layer');
-                    if (videoElement.requestFullscreen) videoElement.requestFullscreen().catch(err => console.log(err));
-                    else if (videoElement.webkitRequestFullscreen) videoElement.webkitRequestFullscreen();
+                    if (videoElement.requestFullscreen) videoElement.requestFullscreen();
                 });
-            } else if (target.webkitRequestFullscreen) {
-                target.webkitRequestFullscreen();
             }
         } else {
             if (document.exitFullscreen) {
                 document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
             }
         }
     }
 
-    // File Handlers
     function handleFileSelect(e) {
         if(e.target.files.length > 0) loadMedia(e.target.files[0]);
-        fileInput.value = ""; // Reset to allow re-selection
+        fileInput.value = "";
     }
 
     function handleSubSelect(e) {
@@ -574,10 +770,9 @@
             video.appendChild(track);
             setStatus("SUBTITLES LOADED");
         }
-        e.target.value = ""; // Reset
+        e.target.value = "";
     }
 
-    // Hyper-Modern Drag & Drop
     const body = document.body;
     body.addEventListener('dragover', e => {
         e.preventDefault();
@@ -595,13 +790,11 @@
         }
     });
 
-    // Volume Mixer
     volBar.addEventListener('input', e => {
         video.volume = e.target.value / 100;
         video.muted = video.volume === 0;
     });
 
-    // Time Travel (Seek Bar)
     let isSeeking = false;
     seekBar.addEventListener('mousedown', () => isSeeking = true);
     seekBar.addEventListener('mouseup', () => isSeeking = false);
@@ -627,7 +820,6 @@
         ctrlStop();
     });
 
-    // Intuitive Canvas Double-Click
     video.addEventListener('dblclick', toggleFullscreen);
 
     function formatTime(s) {
@@ -645,7 +837,6 @@
         return `${minStr}:${secStr}`;
     }
 
-    // Extra Context Menu Functions
     function openUrlPrompt() {
         let url = prompt("Enter media URL:");
         if (url) {
@@ -673,19 +864,6 @@
         volBar.value = video.muted ? 0 : (video.volume * 100 || 100);
     }
 
-    function volChange(amt) {
-        let v = video.volume + amt;
-        v = Math.max(0, Math.min(1, v));
-        video.volume = v;
-        video.muted = (v === 0);
-        volBar.value = v * 100;
-    }
-
-    function setSpeed(rate) {
-        video.playbackRate = rate;
-        setStatus("SPEED: " + rate + "X");
-    }
-
     function toggleLoop() {
         video.loop = !video.loop;
         setStatus(video.loop ? "LOOP: ON" : "LOOP: OFF");
@@ -701,38 +879,106 @@
         }
     }
 
-    function copyTime() {
-        let t = formatTime(video.currentTime);
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(t).then(() => alert("Copied time: " + t)).catch(err => {});
+    function applyFilters() {
+        video.style.filter = `brightness(${filters.brightness}) invert(${filters.invert}) blur(${filters.blur}px) contrast(${filters.contrast})`;
+        video.style.transform = `scaleX(${filters.flip})`;
+    }
+
+    function adjustFilter(name, delta) {
+        filters[name] += delta;
+        applyFilters();
+    }
+
+    function toggleFilter(name) {
+        if (name === 'invert') filters.invert = filters.invert ? 0 : 1;
+        if (name === 'blur') filters.blur = filters.blur ? 5 : 0;
+        if (name === 'contrast') filters.contrast = filters.contrast === 1 ? 2 : 1;
+        if (name === 'flip') filters.flip *= -1;
+        applyFilters();
+    }
+
+    function toggleScanlines() {
+        scanlines.style.display = scanlines.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function resetFilters() {
+        filters = { brightness: 1, invert: 0, blur: 0, contrast: 1, flip: 1 };
+        applyFilters();
+        scanlines.style.display = 'none';
+    }
+
+    function setAspect(mode) {
+        if (mode === 'contain' || mode === 'cover') {
+            video.style.objectFit = mode;
+            video.style.aspectRatio = 'auto';
         } else {
-            prompt("Current Media Time:", t);
+            video.style.objectFit = 'fill';
+            video.style.aspectRatio = mode;
         }
     }
 
+    async function initAudio() {
+        if (audioCtx) {
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
+            return;
+        }
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            const source = audioCtx.createMediaElementSource(video);
+            source.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            analyser.fftSize = 256;
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+            animateBounce();
+        } catch(e) { console.log("Audio API error", e); }
+    }
+
+    function toggleLogoBounce() {
+        isLogoBounceAudio = !isLogoBounceAudio;
+        document.getElementById('mi-logo-bounce').style.fontWeight = isLogoBounceAudio ? 'bold' : 'normal';
+        if (!isLogoBounceAudio) logoImage.style.transform = 'scale(1)';
+    }
+
+    function animateBounce() {
+        requestAnimationFrame(animateBounce);
+        if (!isLogoBounceAudio || !analyser) return;
+        
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+        let avg = sum / dataArray.length;
+        let scale = 1 + (avg / 256) * 0.2;
+        logoImage.style.transform = `scale(${scale})`;
+    }
+
     // Fluid Custom Context Menu
-    document.addEventListener('contextmenu', e => {
-        e.preventDefault(); // Bypass native
-
+    const showMenu = (x, y) => {
         contextMenu.style.display = 'block';
-
-        let x = e.clientX;
-        let y = e.clientY;
-
-        // Smart screen-bounds calculation
-        const menuRect = contextMenu.getBoundingClientRect();
-        if(x + menuRect.width > window.innerWidth) x -= menuRect.width;
-        if(y + menuRect.height > window.innerHeight) y -= menuRect.height;
-
         contextMenu.style.left = x + 'px';
         contextMenu.style.top = y + 'px';
 
-        // Close menu immediately if context click on the menu itself
-        contextMenu.onclick = () => contextMenu.style.display = 'none';
+        requestAnimationFrame(() => {
+            const menuRect = contextMenu.getBoundingClientRect();
+            let nx = x;
+            let ny = y;
+
+            if (x + menuRect.width > window.innerWidth) nx -= menuRect.width;
+            if (y + menuRect.height > window.innerHeight) ny -= menuRect.height;
+
+            contextMenu.style.left = Math.max(0, nx) + 'px';
+            contextMenu.style.top = Math.max(0, ny) + 'px';
+        });
+    };
+
+    window.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        showMenu(e.clientX, e.clientY);
     });
 
-    document.addEventListener('click', e => {
-        if(!contextMenu.contains(e.target)) {
+    document.addEventListener('mousedown', e => {
+        // Hide menu if clicking outside
+        if (contextMenu.style.display === 'block' && !contextMenu.contains(e.target)) {
             contextMenu.style.display = 'none';
         }
     });
@@ -742,7 +988,19 @@
     }); // For robustness
 
     // Initialize
-    awakenCore();
+    document.addEventListener('DOMContentLoaded', () => {
+        awakenCore();
+        
+        // Debug Check
+        setTimeout(async () => {
+            const hostObj = window.chrome?.webview?.hostObjects;
+            if (!hostObj || !hostObj.windowApi) {
+                const info = document.getElementById('title-info');
+                info.innerText = "Sasami4K (BRIDGE ERROR)";
+                info.style.color = "#ff4444";
+            }
+        }, 2000);
+    });
 </script>
 </body>
 </html>
