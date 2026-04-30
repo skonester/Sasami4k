@@ -1,51 +1,47 @@
 # Sasami4K
 
-Sasami4K is a modern, high-performance Windows desktop shell built with **F#** and **WPF**. It leverages the **WebView2** runtime to host web-based user interfaces while providing deep integration with the Windows operating system.
+Sasami4K is a high-performance **WebView2-based media player** shell built with **F#** and **WPF**. It provides a minimalist, modern desktop container for web-based playback interfaces.
 
-## Key Features
+## Project Versions
 
-- **Modern UI Shell**: A minimalist, borderless window designed to host web applications with a native feel.
-- **Windows 11 Integration**: Full support for native Windows 11 aesthetics, including **Mica**, **Acrylic**, and **Tabbed** backdrop effects.
-- **Custom Window API**: Exposes a powerful F# backend API to JavaScript, allowing web content to control window state (maximize, minimize, drag, opacity, and always-on-top) natively.
-- **Dynamic Titlebar Icons**: Automatically updates the native Windows title bar icon based on the current website's favicon (supporting both high-resolution PNGs and ICO files).
-- **Mixed-Language Architecture**: Originally built in C#, now fully migrated to idiomatic **F#** for enhanced safety and performance.
+### 1. Sasami4K (Main)
+The production version of the player, optimized for Windows.
+- **Framework**: .NET Framework 4.8 / WPF
+- **Rendering Engine**: Microsoft Edge WebView2 (Chromium)
+- **Features**: Native Mica/Acrylic effects, high-DPI support, and deep Windows integration.
+- **Project**: `Sasami4k.WindowApi/Sasami4k.WindowApi.fsproj`
+
+### 2. Sasami4K Photino (Prototype)
+An experimental cross-platform shell.
+- **Framework**: .NET 8.0 / Photino.NET
+- **Status**: **Prototype** (Cross-platform support for Linux/macOS).
+- **Project**: `Sasami4k.Photino/Sasami4k.Photino.fsproj`
 
 ## Technology Stack
 
 - **Language**: F# 8.0+
-- **Framework**: .NET Framework 4.8 (Windows)
-- **UI Framework**: WPF (Windows Presentation Foundation)
-- **Rendering Engine**: Microsoft Edge WebView2 (Chromium)
-- **OS**: Windows 10/11 (Mica/Acrylic effects require Windows 11)
+- **UI Framework**: WPF (Windows) / Photino (Cross-platform)
+- **Rendering Engine**: Chromium (via WebView2)
+- **Aesthetics**: Glassmorphism, Modern Dark Mode, Dynamic Favicons.
 
 ## Getting Started
 
 ### Prerequisites
-
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/download) or later.
-- [WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) (installed by default on modern Windows).
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download)
+- [WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/)
 
 ### Build and Run
+To build the main Windows version:
+```powershell
+dotnet build Sasami4k.slnx
+dotnet run --project Sasami4k.WindowApi/Sasami4k.WindowApi.fsproj
+```
 
-1. Clone the repository.
-2. Open the solution in Visual Studio or your preferred IDE.
-3. Restore dependencies and build:
-   ```powershell
-   dotnet build Sasami4k.slnx
-   ```
-4. Run the application:
-   ```powershell
-   dotnet run --project Sasami4k.WindowApi/Sasami4k.WindowApi.fsproj
-   ```
-
-## Development
-
-The project is structured to be extremely lightweight:
-- `App.fs`: Application entry point and resource management.
-- `MainWindow.fs`: Main window logic and WebView2 orchestration.
-- `WindowApi.fs`: The bridge between JavaScript and F#.
-- `MicaHelper.fs`: Native Win32 interop for Windows 11 styling.
-- `TitlebarIconHelper.fs`: Image processing and icon injection.
+To build the Photino prototype:
+```powershell
+dotnet build Sasami4k.Photino.slnx
+dotnet run --project Sasami4k.Photino/Sasami4k.Photino.fsproj
+```
 
 ---
-*Built with ❤️ using F# and WebView2.*
+*Sasami4K: The modern way to play web media on your desktop.*
