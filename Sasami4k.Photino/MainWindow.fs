@@ -6,7 +6,7 @@ open System.Text.Json
 open System.Drawing
 open PhotinoNET
 
-type MainWindow() as this =
+type MainWindow() =
     let window = new PhotinoWindow()
     let mutable isDarkMode = false
 
@@ -42,6 +42,8 @@ type MainWindow() as this =
             .SetSize(800, 600)
             .SetResizable(true)
             .SetDevToolsEnabled(true) // ENABLE INSPECTING TO DEBUG
+            .SetFileSystemAccessEnabled(true)
+            .SetWebSecurityEnabled(false)
             |> ignore
 
         if File.Exists(iconPath) then
@@ -54,23 +56,37 @@ type MainWindow() as this =
                 let action = data.RootElement.GetProperty("action").GetString()
                 
                 match action with
-                | "close" -> window.Close()
-                | "minimize" -> window.SetMinimized(true) |> ignore
-                | "maximize" -> window.SetMaximized(not window.Maximized) |> ignore
+                | "close" ->
+                    window.Close()
+                    dispatchWindowEvent "windowInfoChanged"
+                | "minimize" ->
+                    window.SetMinimized(true) |> ignore
+                    dispatchWindowEvent "windowInfoChanged"
+                | "maximize" ->
+                    window.SetMaximized(not window.Maximized) |> ignore
+                    dispatchWindowEvent "windowInfoChanged"
                 | "restore" -> 
                     window.SetMaximized(false) |> ignore
                     window.SetMinimized(false) |> ignore
+                    dispatchWindowEvent "windowInfoChanged"
+                | "dragMove" ->
+                    let dragMethod = typeof<PhotinoWindow>.GetMethod("DragMove")
+                    if not (isNull dragMethod) then
+                        dragMethod.Invoke(window, [||]) |> ignore
                 | "setSize" ->
                     let w = data.RootElement.GetProperty("width").GetInt32()
                     let h = data.RootElement.GetProperty("height").GetInt32()
                     window.SetSize(w, h) |> ignore
+                    dispatchWindowEvent "windowInfoChanged"
                 | "move" ->
                     let x = data.RootElement.GetProperty("x").GetInt32()
                     let y = data.RootElement.GetProperty("y").GetInt32()
                     window.SetLocation(Point(x, y)) |> ignore
+                    dispatchWindowEvent "windowInfoChanged"
                 | "setAlwaysOnTop" ->
                     let top = data.RootElement.GetProperty("top").GetBoolean()
                     window.SetTopMost(top) |> ignore
+                    dispatchWindowEvent "windowInfoChanged"
                 | "setDarkMode" ->
                     isDarkMode <- data.RootElement.GetProperty("dark").GetBoolean()
                     dispatchWindowEvent "windowInfoChanged"
@@ -83,12 +99,16 @@ type MainWindow() as this =
         ) |> ignore
 
         // Load content
-        if File.Exists(indexPath) then
-            // Use file:// URI for better local resource resolution
-            let uri = Uri(indexPath)
-            window.Load(uri) |> ignore
-        else
-            printfn "Error: index.html not found at %s" indexPath
+        try
+            if File.Exists(indexPath) then
+                printfn "Loading index.html from: %s" indexPath
+                window.Load(indexPath) |> ignore
+            else
+                printfn "Error: index.html not found at %s" indexPath
+                window.LoadRawString("<html><body><h1>Missing index.html</h1><p>Place source/index.html in the output folder.</p></body></html>") |> ignore
+        with ex ->
+            printfn "Error loading index.html: %s" ex.Message
+            window.LoadRawString(sprintf "<html><body><h1>Failed to load UI</h1><pre>%s</pre></body></html>" ex.Message) |> ignore
 
     member _.Show() = 
         window.WaitForClose()

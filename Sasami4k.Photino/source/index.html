@@ -608,7 +608,7 @@
 
 <script>
     // Photino Shim: Emulate WebView2 environment for cross-platform support
-    if (window.external && window.external.sendMessage) {
+    if (window.external) {
         window.chrome = {
             webview: {
                 postMessage: function(msg) {
@@ -623,15 +623,16 @@
                 }
             }
         };
-        // Also handle received messages from Photino
-        window.external.receiveMessage(message => {
+
+        // Photino calls this function when SendWebMessage is used in F#
+        window.__photinoReceiveMessage = function(message) {
             try {
                 const data = JSON.parse(message);
                 if (data.type) {
                     window.dispatchEvent(new CustomEvent(data.type, { detail: data.detail }));
                 }
-            } catch(e) {}
-        });
+            } catch(e) { console.error("Message parse error", e); }
+        };
     }
 
     // Original Elements
@@ -800,22 +801,28 @@
         e.target.value = "";
     }
 
-    const body = document.body;
-    body.addEventListener('dragover', e => {
+    // Aggressive Drag and Drop Handling to prevent default navigation
+    window.addEventListener('dragover', e => {
         e.preventDefault();
+        e.stopPropagation();
         if(!video.src) dropOverlay.style.display = 'flex';
         dropOverlay.classList.add('active');
-    });
-    body.addEventListener('dragleave', e => {
-        dropOverlay.classList.remove('active');
-    });
-    body.addEventListener('drop', e => {
+    }, false);
+
+    window.addEventListener('dragleave', e => {
         e.preventDefault();
+        e.stopPropagation();
+        dropOverlay.classList.remove('active');
+    }, false);
+
+    window.addEventListener('drop', e => {
+        e.preventDefault();
+        e.stopPropagation();
         dropOverlay.classList.remove('active');
         if(e.dataTransfer.files.length > 0) {
             loadMedia(e.dataTransfer.files[0]);
         }
-    });
+    }, false);
 
     volBar.addEventListener('input', e => {
         video.volume = e.target.value / 100;
@@ -957,7 +964,7 @@
             analyser.connect(audioCtx.destination);
             analyser.fftSize = 256;
             dataArray = new Uint8Array(analyser.frequencyBinCount);
-            animateBounce();
+            // animateBounce();
         } catch(e) { console.log("Audio API error", e); }
     }
 
