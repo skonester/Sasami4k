@@ -59,6 +59,8 @@
             height: 100%;
             object-fit: contain;
             transition: opacity 0.5s;
+            will-change: transform;
+            transform: translateZ(0);
         }
 
         /* Stylish Drag and Drop Overlay */
@@ -118,68 +120,7 @@
             pointer-events: none;
         }
 
-        /* Premium Dark Titlebar */
-        #titlebar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 48px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 16px;
-            z-index: 2000;
-            transition: opacity 0.3s;
-            background: rgba(0, 0, 0, 0.85);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            cursor: default;
-        }
 
-        .title-info {
-            font-size: 10px;
-            color: rgba(255,255,255,0.4);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        body.idle #titlebar {
-            opacity: 0;
-        }
-
-        .title-btn-group {
-            display: flex;
-            gap: 2px;
-        }
-
-        .title-btn {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            opacity: 0.6;
-            transition: opacity 0.2s, background 0.2s;
-        }
-
-        .title-btn:hover {
-            opacity: 1;
-            background: rgba(255,255,255,0.1);
-        }
-
-        .title-btn.close:hover {
-            background: #e81123;
-        }
-
-        .title-btn svg {
-            width: 12px;
-            height: 12px;
-            fill: currentColor;
-        }
 
         .glass-panel {
             background: var(--panel-bg);
@@ -191,7 +132,17 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6), 
+                        inset 0 1px 1px rgba(255,255,255,0.1),
+                        0 0 20px rgba(255, 136, 187, 0.05);
+            transition: var(--transition);
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8), 
+                        inset 0 1px 1px rgba(255,255,255,0.15),
+                        0 0 30px rgba(255, 136, 187, 0.1);
         }
 
         /* Precision Seekbar */
@@ -464,28 +415,61 @@
             z-index: 10;
             display: none;
         }
+        /* Help Overlay */
+        #help-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            z-index: 5000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .help-content {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .shortcut-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 5px;
+        }
+
+        .key {
+            background: rgba(255,255,255,0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--accent-color);
+        }
     </style>
 </head>
 <body>
 
-<!-- Custom Titlebar -->
-<div id="titlebar" onmousedown="handleWindowDrag(event)">
-    <div class="title-info" id="title-info">Sasami4K</div>
-    <div class="title-btn-group" onmousedown="event.stopPropagation()">
-        <button class="title-btn" onclick="window.chrome.webview.postMessage('minimize')" title="Minimize">
-            <svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>
-        </button>
-        <button class="title-btn" onclick="window.chrome.webview.postMessage('maximize')" title="Maximize">
-            <svg viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/></svg>
-        </button>
-        <button class="title-btn close" onclick="window.chrome.webview.postMessage('close')" title="Close">
-            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-        </button>
-    </div>
-</div>
+
+
+<!-- Ambilight Background Glow -->
+<canvas id="ambilight-canvas" style="position: absolute; top: -5%; left: -5%; width: 110%; height: 110%; filter: blur(60px); opacity: 0.4; z-index: 0; pointer-events: none; will-change: filter; transform: translateZ(0);"></canvas>
 
 <!-- Main Video Layer -->
 <div id="video-container" onmousedown="handleWindowDrag(event)">
+
     <div id="drop-overlay">
         <svg class="drop-icon" viewBox="0 0 24 24" fill="currentColor">
             <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.36 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
@@ -504,8 +488,9 @@
     <div class="glass-panel">
 
         <!-- Seekbar area -->
-        <div class="seek-container">
+        <div class="seek-container" style="position: relative;">
             <span class="time-display" id="time-current">00:00</span>
+            <div id="seek-tooltip" style="position: absolute; bottom: 35px; background: rgba(0,0,0,0.8); padding: 4px 8px; border-radius: 4px; font-size: 11px; display: none; pointer-events: none; border: 1px solid var(--accent-color);">00:00</div>
             <input type="range" id="seek-bar" value="0" min="0" max="100" step="0.1">
             <span class="time-display" id="time-total">00:00</span>
         </div>
@@ -537,7 +522,7 @@
                     <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:currentColor;opacity:0.7;"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
                     <input type="range" id="vol-bar" value="100" min="0" max="100">
                 </div>
-                <button class="btn" onclick="toggleFullscreen()" title="Fullscreen">
+                <button class="btn" onclick="toggleMaximize()" title="Maximize / Restore">
                     <svg viewBox="0 0 24 24" style="width:20px;height:20px;"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
                 </button>
             </div>
@@ -549,6 +534,26 @@
 <input type="file" id="sub-input" style="display:none" accept=".vtt,.srt" onchange="handleSubSelect(event)">
 
 <!-- Classic Windows 2000 Right Click Menu -->
+<!-- Help Overlay -->
+<div id="help-overlay" onclick="toggleHelp()">
+    <div class="glass-panel help-content" onclick="event.stopPropagation()">
+        <h2 style="color: var(--accent-color); letter-spacing: 2px; font-weight: 300;">KEYBOARD SHORTCUTS</h2>
+        <div class="shortcut-grid">
+            <div class="shortcut-item"><span>Play / Pause</span> <span class="key">SPACE</span></div>
+            <div class="shortcut-item"><span>Stop</span> <span class="key">S</span></div>
+            <div class="shortcut-item"><span>Fullscreen</span> <span class="key">F</span></div>
+            <div class="shortcut-item"><span>Mute</span> <span class="key">M</span></div>
+            <div class="shortcut-item"><span>Seek Forward</span> <span class="key">→</span></div>
+            <div class="shortcut-item"><span>Seek Backward</span> <span class="key">←</span></div>
+            <div class="shortcut-item"><span>Volume Up</span> <span class="key">↑</span></div>
+            <div class="shortcut-item"><span>Volume Down</span> <span class="key">↓</span></div>
+            <div class="shortcut-item"><span>Open File</span> <span class="key">O</span></div>
+            <div class="shortcut-item"><span>Close Help</span> <span class="key">?</span></div>
+        </div>
+        <button class="btn" style="margin-top: 20px; width: 100%; border-radius: 12px;" onclick="toggleHelp()">CLOSE</button>
+    </div>
+</div>
+
 <div id="context-menu">
     <div class="menu-item has-submenu">File
         <div class="submenu">
@@ -607,32 +612,38 @@
 </div>
 
 <script>
-    // Photino Shim: Emulate WebView2 environment for cross-platform support
-    if (window.external) {
-        window.chrome = {
-            webview: {
-                postMessage: function(msg) {
-                    window.external.sendMessage(JSON.stringify({ action: msg }));
-                },
-                hostObjects: {
-                    windowApi: {
-                        DragMove: function() {
-                            window.external.sendMessage(JSON.stringify({ action: 'dragMove' }));
-                        }
-                    }
-                }
+    // InfiniFrame (WebView2) message handler
+    if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.addEventListener('message', event => {
+            const data = event.data;
+            if (data.type) {
+                window.dispatchEvent(new CustomEvent(data.type, { detail: data.detail }));
             }
-        };
+        });
+    }
 
-        // Photino calls this function when SendWebMessage is used in F#
-        window.__photinoReceiveMessage = function(message) {
-            try {
-                const data = JSON.parse(message);
-                if (data.type) {
-                    window.dispatchEvent(new CustomEvent(data.type, { detail: data.detail }));
-                }
-            } catch(e) { console.error("Message parse error", e); }
-        };
+
+    window.addEventListener('windowInfoChanged', (e) => {
+        try {
+            const info = JSON.parse(e.detail);
+            updateWindowState(info);
+        } catch(err) {}
+    });
+
+    function updateWindowState(info) {
+        const maximizeBtn = document.querySelector('button[title^="Maximize"], button[title^="Restore"]');
+        if (maximizeBtn) {
+            const svg = maximizeBtn.querySelector('svg');
+            if (info.isMaximized) {
+                // Restore Icon (overlapping squares)
+                svg.innerHTML = '<path d="M4 8h12v12H4zM8 4h12v12h-2V6H8V4z" fill="currentColor"/>';
+                maximizeBtn.title = "Restore";
+            } else {
+                // Maximize Icon (single square)
+                svg.innerHTML = '<path d="M7 7h10v10H7z" fill="currentColor"/>';
+                maximizeBtn.title = "Maximize";
+            }
+        }
     }
 
     // Original Elements
@@ -651,7 +662,6 @@
     const contextMenu = document.getElementById('context-menu');
     const fileInput = document.getElementById('file-input');
 
-    // State
     let filters = {
         brightness: 1,
         invert: 0,
@@ -661,6 +671,53 @@
     };
     let isLogoBounceAudio = false;
     let audioCtx, analyser, dataArray;
+    let currentMediaUrl = null;
+    let currentSubUrl = null;
+
+    function cleanupUrls() {
+        if (currentMediaUrl) {
+            URL.revokeObjectURL(currentMediaUrl);
+            currentMediaUrl = null;
+        }
+        if (currentSubUrl) {
+            URL.revokeObjectURL(currentSubUrl);
+            currentSubUrl = null;
+        }
+    }
+
+    // Ambilight Logic (Aggressively throttled to 10fps to prevent OOM)
+    const ambilightCanvas = document.getElementById('ambilight-canvas');
+    ambilightCanvas.width = 160;
+    ambilightCanvas.height = 90;
+    const ambilightCtx = ambilightCanvas.getContext('2d');
+    
+    setInterval(() => {
+        if (!video.paused && !video.ended && video.readyState >= 2) {
+            try {
+                ambilightCtx.drawImage(video, 0, 0, 160, 90);
+            } catch(e) {}
+        }
+    }, 100); // 100ms interval = 10fps
+
+    // Seek Tooltip Logic
+    const seekTooltip = document.getElementById('seek-tooltip');
+    seekBar.addEventListener('mousemove', (e) => {
+        if (!video.duration) return;
+        const rect = seekBar.getBoundingClientRect();
+        const pos = (e.clientX - rect.left) / rect.width;
+        const time = pos * video.duration;
+        seekTooltip.style.display = 'block';
+        seekTooltip.style.left = `${e.clientX - rect.left + 35}px`;
+        seekTooltip.innerText = formatTime(time);
+    });
+    seekBar.addEventListener('mouseleave', () => seekTooltip.style.display = 'none');
+
+    function formatTime(seconds) {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        return [h, m, s].map(v => v.toString().padStart(2, '0')).filter((v, i) => v !== '00' || i > 0).join(':');
+    }
 
     // Auto-Hide Controls & Titlebar Idle Logic
     let idleTimeout;
@@ -681,7 +738,26 @@
     }
 
     document.addEventListener('mousemove', awakenCore);
-    document.addEventListener('keydown', awakenCore);
+    document.addEventListener('keydown', (e) => {
+        awakenCore();
+        switch(e.key.toLowerCase()) {
+            case ' ': togglePlay(); break;
+            case 's': ctrlStop(); break;
+            case 'f': toggleFullscreen(); break;
+            case 'm': toggleMute(); break;
+            case 'o': fileInput.click(); break;
+            case '?': toggleHelp(); break;
+            case 'arrowright': video.currentTime += 5; break;
+            case 'arrowleft': video.currentTime -= 5; break;
+            case 'arrowup': video.volume = Math.min(1, video.volume + 0.1); volBar.value = video.volume * 100; break;
+            case 'arrowdown': video.volume = Math.max(0, video.volume - 0.1); volBar.value = video.volume * 100; break;
+        }
+    });
+
+    function toggleHelp() {
+        const help = document.getElementById('help-overlay');
+        help.style.display = help.style.display === 'flex' ? 'none' : 'flex';
+    }
     document.addEventListener('mousedown', awakenCore);
     video.addEventListener('play', awakenCore);
     video.addEventListener('pause', () => {
@@ -698,8 +774,10 @@
 
     function loadMedia(file) {
         if (!file) return;
+        cleanupUrls();
         const isAudio = file.type.startsWith('audio');
-        video.src = URL.createObjectURL(file);
+        currentMediaUrl = URL.createObjectURL(file);
+        video.src = currentMediaUrl;
         npTitle.innerText = file.name;
         dropOverlay.style.display = 'none';
         
@@ -724,7 +802,7 @@
             if (interactive) return;
 
             try {
-                window.chrome.webview.hostObjects.windowApi.DragMove();
+                window.chrome.webview.postMessage(JSON.stringify({ action: 'dragMove' }));
             } catch(err) { console.error("Drag failed", err); }
         }
     }
@@ -761,6 +839,12 @@
         }
     }
 
+
+
+    function toggleMaximize() {
+        window.chrome.webview.postMessage(JSON.stringify({ action: 'maximize' }));
+    }
+
     function toggleFullscreen() {
         let target = document.documentElement;
         if (!document.fullscreenElement && !document.webkitFullscreenElement) {
@@ -785,11 +869,14 @@
     function handleSubSelect(e) {
         if(e.target.files.length > 0) {
             let file = e.target.files[0];
+            if (currentSubUrl) URL.revokeObjectURL(currentSubUrl);
+            currentSubUrl = URL.createObjectURL(file);
+
             let track = document.createElement('track');
             track.kind = 'captions';
             track.label = 'Custom Subtitles';
             track.srclang = 'en';
-            track.src = URL.createObjectURL(file);
+            track.src = currentSubUrl;
             track.default = true;
 
             let existingTracks = video.querySelectorAll('track');

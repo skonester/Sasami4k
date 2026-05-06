@@ -13,6 +13,7 @@ module Program =
             
             let window = MainWindow.create()
             window.WaitForClose()
+            Environment.Exit(0)
             0
         with ex ->
             printfn "FATAL ERROR: %s" ex.Message

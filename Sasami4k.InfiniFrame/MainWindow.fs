@@ -7,10 +7,40 @@ open System.Drawing
 open InfiniFrame
 
 module MainWindow =
+    let prepareAssets () =
+        let assembly = System.Reflection.Assembly.GetExecutingAssembly()
+        let version = assembly.GetName().Version.ToString()
+        let tempDir = Path.Combine(Path.GetTempPath(), sprintf "Sasami4k_Assets_%s" version)
+        if not (Directory.Exists(tempDir)) then Directory.CreateDirectory(tempDir) |> ignore
+        
+        let resourcePrefix = "Sasami4k.InfiniFrame."
+        for resourceName in assembly.GetManifestResourceNames() do
+            if resourceName.StartsWith(resourcePrefix) then
+                let relativePath = 
+                    if resourceName.Contains(".source.") then
+                        resourceName.Replace(resourcePrefix + "source.", "source" + string Path.DirectorySeparatorChar)
+                    elif resourceName.Contains(".resources.") then
+                        resourceName.Replace(resourcePrefix + "resources.", "resources" + string Path.DirectorySeparatorChar)
+                    else
+                        resourceName.Substring(resourcePrefix.Length)
+                
+                let targetPath = Path.Combine(tempDir, relativePath)
+                let targetDir = Path.GetDirectoryName(targetPath)
+                if not (Directory.Exists(targetDir)) then Directory.CreateDirectory(targetDir) |> ignore
+                
+                try
+                    use stream = assembly.GetManifestResourceStream(resourceName)
+                    if stream <> null then
+                        use fileStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None)
+                        stream.CopyTo(fileStream)
+                        fileStream.Flush()
+                with ex -> printfn "Failed to extract %s: %s" resourceName ex.Message
+        tempDir
+
     let create () =
-        let baseDir = AppDomain.CurrentDomain.BaseDirectory
-        let iconPath = Path.Combine(baseDir, "resources", "winview2.ico")
-        let indexPath = Path.Combine(baseDir, "source", "index.html")
+        let assetDir = prepareAssets()
+        let iconPath = Path.Combine(assetDir, "resources", "winview2.ico")
+        let indexPath = Path.Combine(assetDir, "source", "index.html")
         let mutable isDarkMode = false
 
         let getWindowInfo (window: IInfiniFrameWindow) =
@@ -46,12 +76,12 @@ module MainWindow =
                 .SetWebSecurityEnabled(false)
 
         if File.Exists(iconPath) then
-            builder.SetIconFile(iconPath) |> ignore
-
+            builder.SetIconFile(Path.GetFullPath(iconPath)) |> ignore
+        
         // Use a proper file URI for the local index.html
         let indexUri = 
             if File.Exists(indexPath) then 
-                "file:///" + indexPath.Replace("\\", "/").Replace(" ", "%20")
+                (Uri(indexPath)).AbsoluteUri
             else 
                 "about:blank"
         
@@ -72,7 +102,9 @@ module MainWindow =
                     window.SetMinimized(true) |> ignore
                     dispatchWindowEvent window "windowInfoChanged"
                 | "maximize" -> 
-                    window.SetMaximized(not window.Maximized) |> ignore
+                    let isMax = window.Maximized
+                    printfn "Received maximize request. Current state: %b" isMax
+                    window.SetMaximized(not isMax) |> ignore
                     dispatchWindowEvent window "windowInfoChanged"
                 | "restore" -> 
                     window.SetMaximized(false) |> ignore
