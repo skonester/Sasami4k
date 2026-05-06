@@ -6,4 +6,6 @@
   <Project Path="Sasami4k.WindowApi/Sasami4k.WindowApi.fsproj">
     <Platform Solution="*|x64" Project="x64" />
   </Project>
+  <Project Path="Sasami4k.InfiniFrame/Sasami4k.InfiniFrame.fsproj" />
+  <Project Path="Sasami4k.Photino/Sasami4k.Photino.fsproj" />
 </Solution>

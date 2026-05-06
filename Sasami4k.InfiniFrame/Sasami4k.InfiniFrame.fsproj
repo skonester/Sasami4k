@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Sasami4k.InfiniFrame</RootNamespace>
+    <AssemblyName>Sasami4k.InfiniFrame</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>resources/winview2.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="MainWindow.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="InfiniLore.InfiniFrame" Version="0.12.0" />
+    <PackageReference Include="InfiniLore.InfiniFrame.Shared" Version="0.12.0" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3800.47" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="source\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="resources\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>
