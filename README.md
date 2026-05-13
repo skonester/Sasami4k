@@ -1,6 +1,13 @@
 # Sasami4K
 
-Sasami4K is a high-performance **WebView2-based media player** shell built with **F#**. It provides a minimalist, modern desktop container for web-based playback interfaces.
+![F#](https://img.shields.io/badge/F%23-9.0-378BBA?logo=fsharp&logoColor=white)
+![GitHub Downloads](https://img.shields.io/github/downloads/skonester/Sasami4k/total?label=downloads)
+
+![Sasami4K screenshot](screenshot.png)
+
+Sasami4K is a **WebView2 performance test repository** built with **F#**. It compares the same web-media desktop shell across **WPF**, **InfiniFrame**, and **Photino** to evaluate startup behavior, rendering feel, native-window overhead, and WebView2 hosting performance.
+
+The app itself is a minimalist, modern desktop container for web-based playback interfaces. Each project keeps the experience similar while changing the host framework, making it easier to compare how WebView2 behaves in each environment.
 
 ## Project Versions
 
